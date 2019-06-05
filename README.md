@@ -21,6 +21,7 @@ URule提供了两个版本：一个是基于Apache-2.0协议开源免费版本�
     <tr><td>参数名、变量常量名重构</td><td>有</td><td>无</td></tr>
     <tr><td>Excel决策表导入</td><td>有</td><td>无</td></tr>
     <tr><td>规则集模版保存与加载</td><td>有</td><td>无</td></tr>
+	<tr><td>规则集中运行时顺序模式的支持</td><td>有</td><td>无</td></tr>
     <tr><td>中文项目名和文件名支持</td><td>有</td><td>无</td></tr>
     <tr><td>服务器推送知识包到客户端功能的支持</td><td>有</td><td>无</td></tr>
     <tr><td>知识包优化与压缩的支持</td><td>有</td><td>无</td></tr>
@@ -39,6 +40,7 @@ URule提供了两个版本：一个是基于Apache-2.0协议开源免费版本�
     <tr><td>更为完善的文件读写权限控制</td><td>有</td><td>无</td></tr>
 	<tr><td>知识包版本控制</td><td>有</td><td>无</td></tr>
 	<tr><td>SpringBean及Java类的热部署</td><td>有</td><td>无</td></tr>
+	<tr><td>Restful服务调用</td><td>有</td><td>无</td></tr>
     <tr><td>技术支持</td><td>有</td><td>无</td></tr>
   </tbody></table>
 
