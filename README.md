@@ -54,8 +54,6 @@ URule PRO版在线示例：[http://112.124.15.63:8084/index.html](http://112.124
 
 一群：423339793（已满），二群：636590564
 
-#### ![](https://images.gitee.com/uploads/images/2019/0924/140323_57e17f0c_1530031.png)
-
 # License
 
 Apache-2.0
