@@ -34,7 +34,9 @@ URule提供了两个版本：一个是基于Apache-2.0协议开源免费版本�
     <tr><td>规则树构建优化</td><td>有</td><td>无</td></tr>
     <tr><td>对象查找索引支持</td><td>有</td><td>无</td></tr>
     <tr><td>规则树中短路计算的支持</td><td>有</td><td>无</td></tr>
-    <tr><td>规则条件冗余计算缓存支持</td><td>有</td><td>无</td></tr>
+    <tr><td>条件模版、动作模版支持</td><td>有</td><td>无</td></tr>
+	<tr><td>规则流中多线程并行计算的支持</td><td>有</td><td>无</td></tr>
+	<tr><td>同类型对象多实例支持</td><td>有</td><td>无</td></tr>
     <tr><td>基于方案的批量场景测试功能</td><td>有</td><td>无</td></tr>
     <tr><td>知识包调用监控</td><td>有</td><td>无</td></tr>
     <tr><td>更为完善的文件读写权限控制</td><td>有</td><td>无</td></tr>
@@ -46,7 +48,9 @@ URule提供了两个版本：一个是基于Apache-2.0协议开源免费版本�
 
 # 链接
 
-文档视频教程地址：[http://www.bstek.com/resources/doc/](http://www.bstek.com/resources/doc/)
+文档教程地址：[http://www.bstek.com/resources/doc/](http://www.bstek.com/resources/doc/)
+
+视频教程地址：[https://www.bilibili.com/video/av57111513](https://www.bilibili.com/video/av57111513)
 
 URule PRO版在线示例：[http://112.124.15.63:8084/index.html](http://112.124.15.63:8084/index.html)
 
