@@ -51,8 +51,10 @@ URule提供了两个版本：一个是基于Apache-2.0协议开源免费版本�
 文档教程地址：[http://www.bstek.com/resources/doc/](http://www.bstek.com/resources/doc/)
 
 视频教程地址：
-	* 教程：[https://www.bilibili.com/video/av57111513](https://www.bilibili.com/video/av57111513)
-	* 保险行业应用示例：[https://www.bilibili.com/video/av73008171/](https://www.bilibili.com/video/av73008171/)
+
+1.教程：[https://www.bilibili.com/video/av57111513](https://www.bilibili.com/video/av57111513)
+
+2.保险行业应用示例：[https://www.bilibili.com/video/av73008171/](https://www.bilibili.com/video/av73008171/)
 
 URule PRO版在线示例：[http://112.124.15.63:8084/index.html](http://112.124.15.63:8084/index.html)
 
