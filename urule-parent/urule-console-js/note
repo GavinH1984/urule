@@ -1,0 +1,7 @@
+## install dependencies package in package.json
+npm install
+
+##　build the js project
+webpack
+
+

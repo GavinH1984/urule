@@ -1,5 +1,6 @@
 .idea/
 *.iml
-urule-console/target/
-urule-core/target/
-urule-springboot/target/
+/urule-parent/urule-console/target/
+/urule-parent/urule-console-js/node_modules/
+/urule-parent/urule-core/target/
+/urule-parent/urule-springboot/target/
