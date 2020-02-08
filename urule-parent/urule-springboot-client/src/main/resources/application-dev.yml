@@ -1,0 +1,11 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: URuleClient
+urule:
+  ###服务端发现地址
+  resporityServerUrl: http://localhost:8081
+  ###knowledgeUpdateCycle为0时，不是检查缓存，每次都从服务端拉取，为1时，会先查找缓存
+  knowledgeUpdateCycle: 1

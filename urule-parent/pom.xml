@@ -35,7 +35,10 @@
 		<module>urule-console</module>
         <module>urule-core</module>
         <module>urule-springboot</module>
-	</modules>
+        <module>urule-custom-actions</module>
+        <module>urule-springboot-console-server</module>
+        <module>urule-springboot-client</module>
+    </modules>
     <build>
         <resources>
             <resource>
