@@ -17,9 +17,9 @@ public class URuleServerServletRegistration {
 	public ServletRegistrationBean<HttpServlet> registerURuleServlet(){
 		return new ServletRegistrationBean<HttpServlet>(new URuleServlet(),"/urule/*");
 	}
-	@Bean
-	public ServletRegistrationBean<HttpServlet> registerIndexServlet(){
-		return new ServletRegistrationBean<HttpServlet>(new IndexServlet(),"/");
-	}
+//	@Bean
+//	public ServletRegistrationBean<HttpServlet> registerIndexServlet(){
+//		return new ServletRegistrationBean<HttpServlet>(new IndexServlet(),"/");
+//	}
 	
 }

@@ -249,8 +249,7 @@ public class CommonServletHandler extends RenderPageServletHandler{
 			writeObjectToJson(resp, infos);
 		}
 	}
-	
-	
+
 	public void loadXml(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		List<Object> result=new ArrayList<Object>();
 		String files=req.getParameter("files");
@@ -305,6 +304,41 @@ public class CommonServletHandler extends RenderPageServletHandler{
 		}
 		writeObjectToJson(resp, result);
 	}
+
+	public List<Object> loadXml(String files) throws IOException {
+		List<Object> result=new ArrayList<Object>();
+		files=Utils.decodeURL(files);
+		if(files!=null){
+			String[] paths=files.split(";");
+			for(String path:paths){
+				if(path.startsWith(RepositoryResourceProvider.JCR)){
+					path=path.substring(4,path.length());
+				}
+				String[] subpaths=path.split(",");
+				path=subpaths[0];
+				String version=null;
+				if(subpaths.length==2){
+					version=subpaths[1];
+				}
+				try{
+					InputStream inputStream=null;
+					if(StringUtils.isEmpty(version)){
+						inputStream=repositoryService.readFile(path,null);
+					}else{
+						inputStream=repositoryService.readFile(path,version);
+					}
+
+					Document document = parseXmlWithDoc(inputStream);
+					result.add(document);
+
+					inputStream.close();
+				}catch(Exception ex){
+					throw new RuleException(ex);
+				}
+			}
+		}
+		return result;
+	}
 	
 	protected Element parseXml(InputStream stream){
 		SAXReader reader=new SAXReader();
@@ -313,6 +347,17 @@ public class CommonServletHandler extends RenderPageServletHandler{
 			document = reader.read(stream);
 			Element root=document.getRootElement();
 			return root;
+		} catch (DocumentException e) {
+			throw new RuleException(e);
+		}
+	}
+
+	protected Document parseXmlWithDoc(InputStream stream){
+		SAXReader reader=new SAXReader();
+		Document document;
+		try {
+			document = reader.read(stream);
+			return document;
 		} catch (DocumentException e) {
 			throw new RuleException(e);
 		}
