@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2017 Bstek
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -16,10 +16,16 @@
 package com.bstek.urule.console.servlet.respackage;
 
 import java.awt.Color;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -38,6 +44,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.FillPatternType;
@@ -53,7 +60,11 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
+import com.bstek.urule.Configure;
+import com.bstek.urule.KnowledgePackageReceiverServlet;
 import com.bstek.urule.RuleException;
 import com.bstek.urule.Utils;
 import com.bstek.urule.builder.KnowledgeBase;
@@ -61,6 +72,7 @@ import com.bstek.urule.builder.KnowledgeBuilder;
 import com.bstek.urule.builder.ResourceBase;
 import com.bstek.urule.console.EnvironmentUtils;
 import com.bstek.urule.console.User;
+import com.bstek.urule.console.repository.ClientConfig;
 import com.bstek.urule.console.repository.RepositoryService;
 import com.bstek.urule.console.repository.RepositoryServiceImpl;
 import com.bstek.urule.console.repository.model.ResourcePackage;
@@ -73,6 +85,7 @@ import com.bstek.urule.model.library.variable.Variable;
 import com.bstek.urule.model.library.variable.VariableCategory;
 import com.bstek.urule.model.rule.RuleInfo;
 import com.bstek.urule.runtime.KnowledgePackage;
+import com.bstek.urule.runtime.KnowledgePackageWrapper;
 import com.bstek.urule.runtime.KnowledgeSession;
 import com.bstek.urule.runtime.KnowledgeSessionFactory;
 import com.bstek.urule.runtime.cache.CacheUtils;
@@ -112,7 +125,7 @@ public class PackageServletHandler extends RenderPageServletHandler {
 		List<ResourcePackage> packages=repositoryService.loadProjectResourcePackages(project);
 		writeObjectToJson(resp, packages);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public void exportExcelTemplate(HttpServletRequest req, HttpServletResponse resp) throws Exception {
 		List<VariableCategory> variableCategories=(List<VariableCategory>)httpSessionKnowledgeCache.get(req, VCS_KEY);
@@ -136,7 +149,7 @@ public class PackageServletHandler extends RenderPageServletHandler {
 		outputStream.flush();
 		outputStream.close();
 	}
-	
+
 	private void buildSheet(SXSSFWorkbook wb,VariableCategory vc,XSSFCellStyle style){
 		String name=vc.getName();
 		Sheet sheet=wb.createSheet(name);
@@ -150,7 +163,7 @@ public class PackageServletHandler extends RenderPageServletHandler {
 			cell.setCellStyle(style);
 		}
 	}
-	
+
 	public void importExcelTemplate(HttpServletRequest req, HttpServletResponse resp) throws Exception {
 		DiskFileItemFactory factory=new DiskFileItemFactory();
 		ServletFileUpload upload = new ServletFileUpload(factory);
@@ -190,7 +203,7 @@ public class PackageServletHandler extends RenderPageServletHandler {
 		}
 		return mapList;
 	}
-	
+
 	private List<Map<String,String>> buildVariables(XSSFSheet sheet){
 		Map<Integer,String> headerMap=new HashMap<Integer,String>();
 		List<Map<String,String>> mapList=new ArrayList<Map<String,String>>();
@@ -210,7 +223,7 @@ public class PackageServletHandler extends RenderPageServletHandler {
 			if(row==null){
 				continue;
 			}
-			Map<String,String> map=new HashMap<String,String>(); 
+			Map<String,String> map=new HashMap<String,String>();
 			mapList.add(map);
 			for(int j=0;j<totalColumn;j++){
 				XSSFCell cell=row.getCell(j);
@@ -225,24 +238,24 @@ public class PackageServletHandler extends RenderPageServletHandler {
 					String value="";
 					int cellType=cell.getCellType();
 					switch(cellType){
-					case Cell.CELL_TYPE_STRING:
-						value=cell.getStringCellValue();
-						break;
-					case Cell.CELL_TYPE_BLANK:
-						value="";
-						break;
-					case Cell.CELL_TYPE_BOOLEAN:
-						value=String.valueOf(cell.getBooleanCellValue());
-						break;
-					case Cell.CELL_TYPE_NUMERIC:
-						value=String.valueOf(cell.getNumericCellValue());
-						break;
-					case Cell.CELL_TYPE_ERROR:
-						value="";
-						break;
-					case Cell.CELL_TYPE_FORMULA:
-						value=cell.getCellFormula();
-						break;
+						case Cell.CELL_TYPE_STRING:
+							value=cell.getStringCellValue();
+							break;
+						case Cell.CELL_TYPE_BLANK:
+							value="";
+							break;
+						case Cell.CELL_TYPE_BOOLEAN:
+							value=String.valueOf(cell.getBooleanCellValue());
+							break;
+						case Cell.CELL_TYPE_NUMERIC:
+							value=String.valueOf(cell.getNumericCellValue());
+							break;
+						case Cell.CELL_TYPE_ERROR:
+							value="";
+							break;
+						case Cell.CELL_TYPE_FORMULA:
+							value=cell.getCellFormula();
+							break;
 					}
 					if(value==null){
 						value="";
@@ -258,13 +271,95 @@ public class PackageServletHandler extends RenderPageServletHandler {
 		return mapList;
 	}
 
-	
+
 	public void loadFlows(HttpServletRequest req, HttpServletResponse resp) throws Exception {
 		KnowledgeBase knowledgeBase=(KnowledgeBase)httpSessionKnowledgeCache.get(req, KB_KEY);
 		Collection<FlowDefinition> col=knowledgeBase.getFlowMap().values();
 		writeObjectToJson(resp, col);
-	}	
-	
+	}
+
+	public void pushKnowledgePackageToClients(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+		String project=req.getParameter("project");
+		project=Utils.decodeURL(project);
+		String packageId=project+"/"+Utils.decodeURL(req.getParameter("packageId"));
+		if(packageId.startsWith("/")){
+			packageId=packageId.substring(1,packageId.length());
+		}
+		KnowledgePackage knowledgePackage=CacheUtils.getKnowledgeCache().getKnowledge(packageId);
+
+		ObjectMapper mapper=new ObjectMapper();
+		mapper.setSerializationInclusion(Inclusion.NON_NULL);
+		mapper.configure(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS,false);
+		mapper.setDateFormat(new SimpleDateFormat(Configure.getDateFormat()));
+		StringWriter writer=new StringWriter();
+		mapper.writeValue(writer, new KnowledgePackageWrapper(knowledgePackage));
+		String content=writer.getBuffer().toString();
+		writer.close();
+		StringBuffer sb=new StringBuffer();
+		List<ClientConfig> clients=repositoryService.loadClientConfigs(project);
+		int i=0;
+		for(ClientConfig config:clients){
+			if(i>0){
+				sb.append("<br>");
+			}
+			boolean result=pushKnowledgePackage(packageId,content,config.getClient());
+			if(result){
+				sb.append("<span class=\"text-info\" style='line-height:30px'>推送到客户端："+config.getName()+"："+config.getClient()+" 成功</span>");
+			}else{
+				sb.append("<span class=\"text-danger\" style='line-height:30px'>推送到客户端："+config.getName()+"："+config.getClient()+" 失败</span>");
+			}
+			i++;
+		}
+		Map<String,Object> map=new HashMap<String,Object>();
+		map.put("info", sb.toString());
+		writeObjectToJson(resp, map);
+	}
+
+	private boolean pushKnowledgePackage(String packageId,String content,String client){
+		HttpURLConnection connection=null;
+		try{
+			if(client.endsWith("/")){
+				client=client.substring(0,client.length()-1);
+			}
+			String clientUrl=client+KnowledgePackageReceiverServlet.URL;
+			content="packageId="+URLEncoder.encode(packageId, "utf-8")+"&content="+URLEncoder.encode(content, "utf-8");
+			URL url=new URL(clientUrl);
+			connection=(HttpURLConnection)url.openConnection();
+			connection.setRequestMethod("POST");
+			connection.setRequestProperty("Charset", "UTF-8");
+			connection.setRequestProperty("Accept-Charset", "utf-8");
+			connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+			connection.setUseCaches(false);
+			connection.setDoOutput(true);
+			connection.setDoInput(true);
+			connection.connect();
+			OutputStream outputStream=connection.getOutputStream();
+			DataOutputStream wr = new DataOutputStream (connection.getOutputStream());
+			wr.writeBytes(content);
+			wr.flush();
+			wr.close();
+			if (connection.getResponseCode() >= 300) {
+				return false;
+			}
+			InputStream inputStream=connection.getInputStream();
+			String result=IOUtils.toString(inputStream,"UTF-8");
+			outputStream.close();
+			inputStream.close();
+			if(!result.equals("ok")){
+				return false;
+			}
+			return true;
+		}catch(Exception ex){
+			ex.printStackTrace();
+			return false;
+		}finally {
+			if(connection!=null){
+				connection.disconnect();
+			}
+		}
+	}
+
+
 	public void refreshKnowledgeCache(HttpServletRequest req, HttpServletResponse resp) throws Exception {
 		String project=req.getParameter("project");
 		project=Utils.decodeURL(project);
@@ -276,16 +371,29 @@ public class PackageServletHandler extends RenderPageServletHandler {
 		KnowledgePackage knowledgePackage=knowledgeBase.getKnowledgePackage();
 		CacheUtils.getKnowledgeCache().putKnowledge(packageId, knowledgePackage);
 		Map<String,Object> map=new HashMap<String,Object>();
+		List<ClientConfig> clients=repositoryService.loadClientConfigs(project);
+		if(clients.size()>0){
+			StringBuffer sb=new StringBuffer();
+			int i=1;
+			for(ClientConfig config:clients){
+				if(i>1){
+					sb.append("<br>");
+				}
+				sb.append(config.getName()+"："+config.getClient());
+				i++;
+			}
+			map.put("clientInfo", sb.toString());
+		}
 		writeObjectToJson(resp, map);
 	}
-	
+
 	public void loadForTestVariableCategories(HttpServletRequest req, HttpServletResponse resp) throws Exception {
 		KnowledgeBase knowledgeBase = buildKnowledgeBase(req);
 		List<VariableCategory> vcs=knowledgeBase.getResourceLibrary().getVariableCategories();
 		httpSessionKnowledgeCache.put(req, VCS_KEY, vcs);
 		writeObjectToJson(resp, vcs);
 	}
-	
+
 	private KnowledgeBase buildKnowledgeBase(HttpServletRequest req) throws IOException{
 		String files=req.getParameter("files");
 		files=Utils.decodeURL(files);
@@ -305,8 +413,8 @@ public class PackageServletHandler extends RenderPageServletHandler {
 		httpSessionKnowledgeCache.put(req, KB_KEY, knowledgeBase);
 		return knowledgeBase;
 	}
-	
-	
+
+
 	public void saveResourcePackages(HttpServletRequest req, HttpServletResponse resp) throws Exception {
 		String project=req.getParameter("project");
 		project=Utils.decodeURL(project);
@@ -316,7 +424,7 @@ public class PackageServletHandler extends RenderPageServletHandler {
 		User user=EnvironmentUtils.getLoginUser(new RequestContext(req,resp));
 		repositoryService.saveFile(path, xml, false,null,user);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	private List<VariableCategory> mapToVariableCategories(List<Map<String,Object>> mapList){
 		List<VariableCategory> list=new ArrayList<VariableCategory>();
@@ -352,8 +460,8 @@ public class PackageServletHandler extends RenderPageServletHandler {
 		}
 		return list;
 	}
-	
-	
+
+
 	@SuppressWarnings("unchecked")
 	public void doBatchTest(HttpServletRequest req, HttpServletResponse resp) throws Exception {
 		String flowId=req.getParameter("flowId");
@@ -433,7 +541,7 @@ public class PackageServletHandler extends RenderPageServletHandler {
 				}
 			}else{
 				if(parameterMap==null){
-					session.fireRules();			
+					session.fireRules();
 				}else{
 					session.fireRules(parameterMap);
 					Map<String,Object> p=new HashMap<String,Object>();
@@ -462,8 +570,8 @@ public class PackageServletHandler extends RenderPageServletHandler {
 		result.put("data", resultList);
 		writeObjectToJson(resp, result);
 	}
-	
-	
+
+
 	@SuppressWarnings("unchecked")
 	private void buildResult(List<Map<String,Object>> list,String categoryName,Object fact){
 		List<Object> rowList=null;
@@ -498,7 +606,7 @@ public class PackageServletHandler extends RenderPageServletHandler {
 		}
 		return factList.get(objectIndex);
 	}
-	
+
 
 	private void buildObject(Object obj,Map<String,Object> map,List<Variable> variables){
 		for(String name:map.keySet()){
@@ -525,9 +633,9 @@ public class PackageServletHandler extends RenderPageServletHandler {
 			Utils.setObjectProperty(obj, var.getName(), value);
 		}
 	}
-	
-	
-	
+
+
+
 	@SuppressWarnings({ "unchecked"})
 	public void doTest(HttpServletRequest req, HttpServletResponse resp) throws Exception {
 		String data=req.getParameter("data");
@@ -544,7 +652,7 @@ public class PackageServletHandler extends RenderPageServletHandler {
 				entity=new GeneralEntity(clazz);
 			}
 			for(Variable var:vc.getVariables()){
-				buildObject(entity, var);				
+				buildObject(entity, var);
 			}
 			facts.put(vc,entity);
 		}
@@ -561,7 +669,7 @@ public class PackageServletHandler extends RenderPageServletHandler {
 			if(!(obj instanceof GeneralEntity) && (obj instanceof HashMap)){
 				parameters=(Map<String,Object>)obj;
 			}else{
-				session.insert(obj);				
+				session.insert(obj);
 			}
 		}
 		ExecutionResponse response=null;
@@ -573,9 +681,9 @@ public class PackageServletHandler extends RenderPageServletHandler {
 			}
 		}else{
 			if(parameters==null){
-				response=session.fireRules();			
+				response=session.fireRules();
 			}else{
-				response=session.fireRules(parameters);						
+				response=session.fireRules(parameters);
 			}
 		}
 		for(VariableCategory vc:facts.keySet()){
@@ -602,7 +710,7 @@ public class PackageServletHandler extends RenderPageServletHandler {
 			sb.append("，");
 			sb.append("匹配的规则共"+matchedRules.size()+"个");
 			if(matchedRules.size()>0){
-				buildRulesName(matchedRules, sb);				
+				buildRulesName(matchedRules, sb);
 			}
 			sb.append("；");
 			sb.append("触发的规则共"+firedRules.size()+"个");
@@ -613,7 +721,7 @@ public class PackageServletHandler extends RenderPageServletHandler {
 		resultMap.put("data", variableCategories);
 		writeObjectToJson(resp, resultMap);
 	}
-	
+
 	private void buildObject(Object obj,Variable var){
 		String name=var.getName();
 		if(name.indexOf(".")!=-1){
@@ -635,7 +743,7 @@ public class PackageServletHandler extends RenderPageServletHandler {
 			Utils.setObjectProperty(obj, name, value);
 		}
 	}
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private List<GeneralEntity> buildList(String value){
 		try {
@@ -682,7 +790,7 @@ public class PackageServletHandler extends RenderPageServletHandler {
 			throw new RuleException(e);
 		}
 	}
-	
+
 	private void instanceChildObject(Object obj,String propertyName){
 		int pointIndex=propertyName.indexOf(".");
 		if(pointIndex==-1){
@@ -703,7 +811,7 @@ public class PackageServletHandler extends RenderPageServletHandler {
 			throw new RuleException(e);
 		}
 	}
-	
+
 
 	private void buildRulesName(List<RuleInfo> firedRules, StringBuffer sb) {
 		sb.append("：");
@@ -716,7 +824,7 @@ public class PackageServletHandler extends RenderPageServletHandler {
 			i++;
 		}
 	}
-	
+
 	private void buildVariableValue(Object object,Variable var){
 		String name=var.getName();
 		Object value=Utils.getObjectProperty(object, name);
@@ -726,7 +834,7 @@ public class PackageServletHandler extends RenderPageServletHandler {
 				//var.setDefaultValue(value.toString());								
 			}else{
 				String str=type.convertObjectToString(value);
-				var.setDefaultValue(str);				
+				var.setDefaultValue(str);
 			}
 		}
 	}
@@ -734,7 +842,7 @@ public class PackageServletHandler extends RenderPageServletHandler {
 	public void setRepositoryService(RepositoryService repositoryService) {
 		this.repositoryService = repositoryService;
 	}
-	
+
 	public void setKnowledgeBuilder(KnowledgeBuilder knowledgeBuilder) {
 		this.knowledgeBuilder = knowledgeBuilder;
 	}
@@ -742,7 +850,7 @@ public class PackageServletHandler extends RenderPageServletHandler {
 			HttpSessionKnowledgeCache httpSessionKnowledgeCache) {
 		this.httpSessionKnowledgeCache = httpSessionKnowledgeCache;
 	}
-	
+
 	@Override
 	public String url() {
 		return "/packageeditor";
